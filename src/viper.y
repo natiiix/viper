@@ -16,6 +16,8 @@ void yyerror(const char* const str);
 
 const char* strformat(const char* const format, ...);
 
+const char* const strempty = "";
+
 %}
 
 %union
@@ -23,12 +25,30 @@ const char* strformat(const char* const format, ...);
     const char* str_val;
 }
 
+%token<str_val> LIT_STRING
+
+%token NEWLINE
+%token KW_PRINT
+
+%type<str_val> statement_block statement
+
 %start full_source_code
 
 %%
 
 full_source_code
-    : %empty { printf("%s", "int main(void) { return 0; }"); }
+    : statement_block { printf("#include <stdio.h>\nint main(void) { %s return 0; }", $1); }
+    ;
+
+statement_block
+    : NEWLINE { $$ = strempty; }
+    | NEWLINE statement_block { $$ = $2; }
+    | statement { $$ = $1; }
+    | statement statement_block { strformat("%s%s", $1, $2); }
+    ;
+
+statement
+    : KW_PRINT LIT_STRING NEWLINE { $$ = strformat("printf(\"%%s\", %s);", $2); }
     ;
 
 %%
