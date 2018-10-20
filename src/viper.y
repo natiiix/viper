@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 extern int yylex();
 extern int yyparse();
@@ -15,8 +16,13 @@ extern FILE* yyin;
 void yyerror(const char* const str);
 
 const char* strformat(const char* const format, ...);
+const char* getincludes(void);
 
 const char* const strempty = "";
+const char* const format_main = "%sint main(void){%sreturn 0;}";
+const char* const format_printf = "printf(\"%%s\", %s);";
+
+bool include_stdio = false;
 
 %}
 
@@ -37,7 +43,7 @@ const char* const strempty = "";
 %%
 
 full_source_code
-    : statement_block { printf("#include <stdio.h>\nint main(void) { %s return 0; }", $1); }
+    : statement_block { printf(format_main, getincludes(), $1); }
     ;
 
 statement_block
@@ -48,7 +54,7 @@ statement_block
     ;
 
 statement
-    : KW_PRINT LIT_STRING NEWLINE { $$ = strformat("printf(\"%%s\", %s);", $2); }
+    : KW_PRINT LIT_STRING NEWLINE { include_stdio = true; $$ = strformat(format_printf, $2); }
     ;
 
 %%
@@ -69,7 +75,6 @@ int main(const int argc, const char* const* const argv)
 {
     if (argc == 1)
     {
-        // printf("STDIN\n");
 	    yyin = stdin;
         yyparse_loop();
     }
@@ -77,7 +82,6 @@ int main(const int argc, const char* const* const argv)
     {
         for (int i = 1; i < argc; i++)
         {
-            // printf("FILE: %s\n", argv[i]);
             yyin = fopen(argv[i], "r");
             yyparse_loop();
         }
@@ -119,4 +123,9 @@ const char* strformat(const char* const format, ...)
 
     str[len] = '\0';
     return str;
+}
+
+const char* getincludes(void)
+{
+    return strformat("%s", include_stdio ? "#include <stdio.h>\n" : strempty);
 }
