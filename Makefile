@@ -18,8 +18,9 @@ clean:
 	rm ${TMP_DIR}*
 	rm ${BIN_DIR}*
 
-test: ${BIN_DIR}$(PROJECT_NAME) ${TEST_DATA_DIR}empty.${EXTENSION}
+test: ${BIN_DIR}$(PROJECT_NAME) ${TEST_DATA_DIR}empty.${EXTENSION} ${TEST_DATA_DIR}print.${EXTENSION}
 	$(call run_test,empty)
+	$(call run_test,print)
 	@ echo \\n\>\>\> All tests passed! \<\<\<
 
 define run_test =
