@@ -50,7 +50,7 @@ statement_block
     : NEWLINE { $$ = strempty; }
     | NEWLINE statement_block { $$ = $2; }
     | statement { $$ = $1; }
-    | statement statement_block { strformat("%s%s", $1, $2); }
+    | statement statement_block { $$ = strformat("%s%s", $1, $2); }
     ;
 
 statement
